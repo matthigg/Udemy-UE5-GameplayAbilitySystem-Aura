@@ -9,6 +9,7 @@
 class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
+class IEnemyInterface;
 
 /**
  * 
@@ -21,6 +22,7 @@ class AURA_API AAuraPlayerController : public APlayerController
 public:
 	
 	AAuraPlayerController();
+	virtual void PlayerTick(float DeltaTime) override;
 	
 protected:
 	
@@ -36,7 +38,8 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Input")
 	TObjectPtr<UInputAction> MoveAction;
 	
-	// Since FInputActionValue is a struct we can forward declare it here 
-	// using the "struct" keyword instead of class
 	void Move(const FInputActionValue& InputActionValue);
+	void CursorTrace();
+	TScriptInterface<IEnemyInterface> LastActor;
+	TScriptInterface<IEnemyInterface> ThisActor;
 };
