@@ -7,9 +7,9 @@
 UAuraAttributeSet::UAuraAttributeSet()
 {
 	// This was created by the ATTRIBUTE_ACCESSORS macro in the AuraAttributeSet.h header file
-	InitHealth(100.f);
+	InitHealth(50.f);
 	InitMaxHealth(100.f);
-	InitMana(100.f);
+	InitMana(30.f);
 	InitMaxMana(100.f);
 }
 
