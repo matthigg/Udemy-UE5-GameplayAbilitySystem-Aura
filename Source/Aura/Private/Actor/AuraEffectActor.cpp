@@ -38,7 +38,7 @@ void AAuraEffectActor::ApplyEffectToTarget(AActor* TargetActor, TSubclassOf<UGam
 	
 	GEContextHandle.AddSourceObject(this);
 	
-	const FGameplayEffectSpecHandle GESpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass,1.f, GEContextHandle);
+	const FGameplayEffectSpecHandle GESpecHandle = TargetASC->MakeOutgoingSpec(GameplayEffectClass, ActorLevel, GEContextHandle);
 	const FActiveGameplayEffectHandle ActiveGEHandle = TargetASC->ApplyGameplayEffectSpecToSelf(*GESpecHandle.Data.Get());
 	
 	// Only map the ActiveGEHandle to TargetASC for infinite effects that are intended to be removed at some point

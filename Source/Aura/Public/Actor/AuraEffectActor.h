@@ -78,6 +78,9 @@ protected:
 	
 	// Map ActiveGEHandle to TargetASC
 	TMap<FActiveGameplayEffectHandle, UAbilitySystemComponent*> ActiveGEHandleTargetASCMap;
+	
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Applied Effects")
+	float ActorLevel = 1.f;
 
 private:
 	
