@@ -14,25 +14,17 @@ void UAuraAbilitySystemComponent::EffectApplied(
 	FActiveGameplayEffectHandle ActiveEffectHandle
 )
 {
-	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Blue, FString(TEXT("Effect Applied!")));
-
-	FGameplayTagContainer TagContainer;
-	EffectSpec.GetAllAssetTags(TagContainer);
+	// Asset Tags
+	FGameplayTagContainer AssetTagContainer;
+	EffectSpec.GetAllAssetTags(AssetTagContainer);
+	EffectAssetTags.Broadcast(AssetTagContainer);
+	const FString AssetTagsCount = FString::Printf(TEXT("Asset Tags: %d"), AssetTagContainer.Num());
+	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, AssetTagsCount);
 	
-	const FString CountMsg = FString::Printf(TEXT("Asset Tags: %d"), TagContainer.Num());
-	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Yellow, CountMsg);
+	// Granted Tags
+	FGameplayTagContainer GrantedTagContainer;
+	EffectSpec.GetAllGrantedTags(GrantedTagContainer);
+	const FString GrantedTagsCount = FString::Printf(TEXT("Granted Tags: %d"), GrantedTagContainer.Num());
+	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan, GrantedTagsCount);
 	
-	//
-	
-	FGameplayTagContainer GrantedTags;
-	EffectSpec.GetAllGrantedTags(GrantedTags);
-
-	GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Cyan,FString::Printf(TEXT("Granted Tags: %d"), GrantedTags.Num()));
-	
-	for (const FGameplayTag& Tag : TagContainer)
-	{
-		// TODO: Broadcast the tag to the Widget Controller
-		const FString Msg = FString::Printf(TEXT("GE Tag: %s"), *Tag.ToString());
-		GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Green, Msg);
-	}
 }
