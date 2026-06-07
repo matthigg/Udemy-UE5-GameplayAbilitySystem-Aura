@@ -36,20 +36,28 @@ void UOverlayWidgetController::BindCallbacksToDependencies()
 	AbilitySystemComponent->GetGameplayAttributeValueChangeDelegate(AuraAttributeSet->GetMaxManaAttribute())
 		.AddUObject(this, &UOverlayWidgetController::MaxManaChanged); // MaxManaChanged is the callback function
 	
-	// Here we're using a lambda function instead of a normal callback function
+	// Here we're using a lambda function instead of a normal callback function for binding the EffectAssetTag delegate
 	Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent)->EffectAssetTags.AddLambda(
-
-		[](const FGameplayTagContainer& AssetTagContainer)
+		[this](const FGameplayTagContainer& AssetTagContainer)
 		{
 			// Loop through AssetTags in the AssetTagContainer
-			for (const FGameplayTag& AssetTag : AssetTagContainer)
+			for (const FGameplayTag& AssertTag : AssetTagContainer)
 			{
-				// TODO: Broadcast the tag to the Widget Controller
-				const FString Msg = FString::Printf(TEXT("GE Tag: %s"), *AssetTag.ToString());
-				GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Green, Msg);
+				// For example, say that AssertTag = Message.HealthPotion
+				// "Message.HealthPotion".MatchesTag("Message") will return True
+				// "Message".MatchesTag("Message.HealthPotion") will return False
+				FGameplayTag MessageTag = FGameplayTag::RequestGameplayTag(FName("Message"));
+				if (AssertTag.MatchesTag(MessageTag))
+				{
+					const FString Msg = FString::Printf(TEXT("GE Message Tag: %s"), *AssertTag.ToString());
+					GEngine->AddOnScreenDebugMessage(-1, 8.f, FColor::Green, Msg);
+					
+					// We can broadcast this DataTable Row to a UI widget
+					const FUIWidgetRow* Row = GetDataTableRowByTag<FUIWidgetRow>(MessageWidgetDataTable, AssertTag);
+					MessageWidgetRowDelegate.Broadcast(*Row);
+				}
 			}
 		}
-	
 	);
 }
 
