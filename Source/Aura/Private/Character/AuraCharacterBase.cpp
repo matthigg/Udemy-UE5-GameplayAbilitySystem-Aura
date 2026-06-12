@@ -3,6 +3,7 @@
 
 #include "Character/AuraCharacterBase.h"
 #include "AbilitySystemComponent.h"
+#include "AbilitySystem/AuraAbilitySystemComponent.h"
 
 
 AAuraCharacterBase::AAuraCharacterBase()
@@ -39,11 +40,26 @@ void AAuraCharacterBase::ApplyEffectToSelf(const TSubclassOf<UGameplayEffect> Ga
 	GetAbilitySystemComponent()->ApplyGameplayEffectSpecToTarget(*SpecHandle.Data.Get(), GetAbilitySystemComponent());
 }
 
-void AAuraCharacterBase::InitializeDefaultAttriutes() const
+void AAuraCharacterBase::InitializeDefaultAttributes() const
 {
 	ApplyEffectToSelf(DefaultPrimaryAttributes, 1.f);
 	ApplyEffectToSelf(DefaultSecondaryAttributes, 1.f); // Must be set after Primary Attributes
 	ApplyEffectToSelf(DefaultVitalAttributes, 1.f); // Must be set after Secondary Attributes
+}
+
+void AAuraCharacterBase::AddCharacterAbilities()
+{
+	// UAuraAbilitySystemComponent* AuraASC = CastChecked<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+	UAuraAbilitySystemComponent* AuraASC = Cast<UAuraAbilitySystemComponent>(AbilitySystemComponent);
+	
+	if (!AuraASC)
+	{
+		UE_LOG(LogTemp, Error, TEXT("AddCharacterAbilities called but AbilitySystemComponent is null!"));
+		return; 
+	}
+	if (!HasAuthority()) return;
+	
+	AuraASC->AddCharacterAbilities(StartupAbilities);
 }
 
 
