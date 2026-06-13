@@ -35,6 +35,8 @@ void AAuraEnemy::HighlightActor()
 {
 	bHighlighted = true;
 	
+	UE_LOG(LogTemp, Warning, TEXT("HighlightActor"));
+	
 	GetMesh()->SetRenderCustomDepth(true);
 	GetMesh()->SetCustomDepthStencilValue(CUSTOM_DEPTH_RED);
 	Weapon->SetRenderCustomDepth(true);
