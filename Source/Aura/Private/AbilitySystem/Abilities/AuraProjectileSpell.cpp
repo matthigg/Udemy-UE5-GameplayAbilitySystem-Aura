@@ -17,7 +17,7 @@ void UAuraProjectileSpell::ActivateAbility(
 	
 }
 
-void UAuraProjectileSpell::SpawnProjectile()
+void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocation)
 {
 	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();
 	if (!bIsServer) return;
@@ -26,9 +26,14 @@ void UAuraProjectileSpell::SpawnProjectile()
 	if (CombatInterface)
 	{
 		const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
+		FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
+		
+		// This zeroes out the z-vector, meaning projectiles fly parallel to the x & y axes
+		Rotation.Pitch = 0.f;
 		
 		FTransform SpawnTransform;
 		SpawnTransform.SetLocation(SocketLocation);
+		SpawnTransform.SetRotation(Rotation.Quaternion());
 		
 		// TODO: Set the Projectile rotation
 		
