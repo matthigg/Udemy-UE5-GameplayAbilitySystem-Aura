@@ -2,6 +2,9 @@
 
 
 #include "Actor/AuraProjectile.h"
+
+#include "AbilitySystemBlueprintLibrary.h"
+#include "AbilitySystemComponent.h"
 #include "NiagaraFunctionLibrary.h"
 #include "Aura/Aura.h"
 #include "Components/SphereComponent.h"
@@ -59,7 +62,6 @@ void AAuraProjectile::Destroyed()
 	
 	if (LoopingSoundComponent && !LoopingSoundComponent->IsBeingDestroyed() && LoopingSoundComponent->IsActive())
 	{
-		// LoopingSoundComponent->Stop();
 		LoopingSoundComponent->FadeOut(0.1f, 0.0f); 
 	}
 	
@@ -90,13 +92,17 @@ void AAuraProjectile::OnSphereOverlap(
 	
 	if (LoopingSoundComponent && !LoopingSoundComponent->IsBeingDestroyed() && LoopingSoundComponent->IsActive())
 	{
-		// LoopingSoundComponent->Stop();
 		LoopingSoundComponent->FadeOut(0.1f, 0.0f); 
 	}
 	
 	// It's possible that the effect is destroyed before the sound is played & the effect is spawned on the client side
 	if (HasAuthority())
 	{
+		if (UAbilitySystemComponent* TargetASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(OtherActor))
+		{
+			TargetASC->ApplyGameplayEffectSpecToSelf(*DamageEffectSpecHandle.Data.Get());
+		}
+		
 		Destroy();
 	}
 	else
