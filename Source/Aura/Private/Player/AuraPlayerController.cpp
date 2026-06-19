@@ -13,6 +13,8 @@
 #include "Input/AuraInputComponent.h"
 #include "Interaction/EnemyInterface.h"
 #include "NavigationPath.h"
+#include "GameFramework/Character.h"
+#include "UI/Widget/DamageTextComponent.h"
 #include "Kismet/GameplayStatics.h"
 
 
@@ -30,6 +32,19 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	Super::PlayerTick(DeltaTime);
 	CursorTrace();
 	AutoRun();
+}
+
+void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter)
+{
+	// This executes on the server, but both a server-controlled and client-controlled character can see it
+	if (IsValid(TargetCharacter) && DamageTextComponentClass)
+	{
+		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
+		DamageText->RegisterComponent(); // Must manually register since we're not using TSubclassOf
+		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
+		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
+		DamageText->SetDamageText(DamageAmount);
+	}
 }
 
 void AAuraPlayerController::BeginPlay()
