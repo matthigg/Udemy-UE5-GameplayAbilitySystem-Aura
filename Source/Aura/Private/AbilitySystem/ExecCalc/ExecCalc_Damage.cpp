@@ -88,7 +88,7 @@ void UExecCalc_Damage::Execute_Implementation(
 	const bool bBlocked = FMath::RandRange(1, 100) < TargetBlockChance;
 	Damage = bBlocked ? Damage / 2.f : Damage;
 	
-	// Use the custom FAuraGmeplayEffectContext to store bBlocked in its bIsBlockedHit variable
+	// Use the custom FAuraGameplayEffectContext to store bBlocked in its bIsBlockedHit variable
 	FGameplayEffectContextHandle EffectContextHandle = Spec.GetContext();
 	UAuraAbilitySystemLibrary::SetIsBlockedHit(EffectContextHandle, bBlocked);
 	
