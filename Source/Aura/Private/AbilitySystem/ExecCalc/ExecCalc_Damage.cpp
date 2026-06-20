@@ -22,7 +22,6 @@ struct AuraDamageStatics
 	AuraDamageStatics()
 	{
 		// This macro creates ##Property and ##Def properties, e.g. ArmorProperty & ArmorDef
-		
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, Armor, Target, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, ArmorPenetration, Source, false);
 		DEFINE_ATTRIBUTE_CAPTUREDEF(UAuraAttributeSet, BlockChance, Target, false);
@@ -34,7 +33,6 @@ struct AuraDamageStatics
 
 // In this static function DStatics persists in memory, so it returns the same DStatics struct each time it's called
 // without having to use pointers
-
 static const AuraDamageStatics DamageStatics()
 {
 	static AuraDamageStatics DStatics;
@@ -58,7 +56,6 @@ void UExecCalc_Damage::Execute_Implementation(
 {
 	
 	// Boilerplate/Setup
-	
 	const UAbilitySystemComponent* SourceASC = ExecutionParams.GetSourceAbilitySystemComponent();
 	const UAbilitySystemComponent* TargetASC = ExecutionParams.GetTargetAbilitySystemComponent();
 	
@@ -76,11 +73,14 @@ void UExecCalc_Damage::Execute_Implementation(
 	EvaluationParameters.TargetTags = TargetTags;
 	
 	// Get Damage Set by Caller Magnitude (this was previously set in the UE editor as a "Set by Caller" modifier)
-	
-	float Damage = Spec.GetSetByCallerMagnitude(FAuraGameplayTags::Get().Damage);
+	float Damage = 0.f;
+	for (const TTuple<FGameplayTag, FGameplayTag>& Pair : FAuraGameplayTags::Get().DamageTypesToResistancesMap)
+	{
+		const float DamageTypeValue = Spec.GetSetByCallerMagnitude(Pair.Key);
+		Damage += DamageTypeValue;
+	}
 	
 	// Capture BlockChance on Target and determine if there was a successful Block -- if successful then halve the Damage
-	
 	float TargetBlockChance = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().BlockChanceDef, EvaluationParameters, TargetBlockChance);
 	TargetBlockChance = FMath::Max<float>(0.f, TargetBlockChance);
@@ -89,12 +89,10 @@ void UExecCalc_Damage::Execute_Implementation(
 	Damage = bBlocked ? Damage / 2.f : Damage;
 	
 	// Use the custom FAuraGmeplayEffectContext to store bBlocked in its bIsBlockedHit variable
-	
 	FGameplayEffectContextHandle EffectContextHandle = Spec.GetContext();
 	UAuraAbilitySystemLibrary::SetIsBlockedHit(EffectContextHandle, bBlocked);
 	
 	// Capture Armor on Target and ArmorPenetration on Source -- ArmorPenetration lowers Target's Armor
-	
 	float TargetArmor = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().ArmorDef, EvaluationParameters, TargetArmor);
 	TargetArmor = FMath::Max<float>(0.f, TargetArmor);
@@ -114,7 +112,6 @@ void UExecCalc_Damage::Execute_Implementation(
 	Damage *= (100 - EffectiveArmor * EffectiveArmorCoefficient) / 100.f;
 	
 	// Capture CriticalHitChance & CriticalHitDamage on Source and CriticalHitResistance on Target -- CriticalHitResistance lowers CriticalHitChance
-	
 	float SourceCriticalHitChance = 0.f;
 	ExecutionParams.AttemptCalculateCapturedAttributeMagnitude(DamageStatics().CriticalHitChanceDef, EvaluationParameters, SourceCriticalHitChance);
 	SourceCriticalHitChance = FMath::Max<float>(0.f, SourceCriticalHitChance);
@@ -135,7 +132,6 @@ void UExecCalc_Damage::Execute_Implementation(
 	Damage = bCriticalHit ? Damage * 2.f + SourceCriticalHitDamage : Damage;
 	
 	// Use the custom FAuraGmeplayEffectContext to store bCriticalHit in its bIsCriticalHit variable
-	
 	UAuraAbilitySystemLibrary::SetIsCriticalHit(EffectContextHandle, bCriticalHit);
 	
 	//
@@ -146,7 +142,6 @@ void UExecCalc_Damage::Execute_Implementation(
 	
 	
 	// Output Modifier
-	
 	const FGameplayModifierEvaluatedData EvaluatedData(UAuraAttributeSet::GetIncomingDamageAttribute(), EGameplayModOp::Additive, Damage);
 	OutExecutionOutput.AddOutputModifier(EvaluatedData);
 }
