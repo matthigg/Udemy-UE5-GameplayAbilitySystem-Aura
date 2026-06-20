@@ -6,8 +6,6 @@
 
 bool FAuraGameplayEffectContext::NetSerialize(FArchive& Ar, class UPackageMap* Map, bool& bOutSuccess)
 {
-	// return FGameplayEffectContext::NetSerialize(Ar, Map, bOutSuccess);
-	
 	uint32 RepBits = 0;
 	if (Ar.IsSaving())
 	{
