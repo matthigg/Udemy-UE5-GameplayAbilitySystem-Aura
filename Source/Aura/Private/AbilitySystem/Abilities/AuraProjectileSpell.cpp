@@ -49,7 +49,19 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		
 		// Give the Projectile a Gameplay Effect Spec for causing damage
 		const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
-		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), SourceASC->MakeEffectContext());
+		
+		FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
+		
+		// These are just examples of things you can add to a GameplayEffectContextHandle
+		// EffectContextHandle.SetAbility(this);
+		// EffectContextHandle.AddSourceObject(Projectile);
+		// TArray<TWeakObjectPtr<AActor>> Actors;
+		// Actors.Add(Projectile);
+		// EffectContextHandle.AddActors(Actors);
+		// FHitResult HitResult;
+		// EffectContextHandle.AddHitResult(HitResult);
+		
+		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
 		
 		// AssignTagSetByCallerMagnitude creates a key:value pair, where GameplayTags.Damage is the key and ScaledDamage is the value
 		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
