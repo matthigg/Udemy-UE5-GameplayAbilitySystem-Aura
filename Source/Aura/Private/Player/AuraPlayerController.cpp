@@ -34,7 +34,12 @@ void AAuraPlayerController::PlayerTick(float DeltaTime)
 	AutoRun();
 }
 
-void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, ACharacter* TargetCharacter)
+void AAuraPlayerController::ShowDamageNumber_Implementation(
+	const float DamageAmount, 
+	ACharacter* TargetCharacter,
+	const bool bBlockedHit, 
+	const bool bCriticalHit
+)
 {
 	// This executes on the server, but both a server-controlled and client-controlled character can see it
 	if (IsValid(TargetCharacter) && DamageTextComponentClass)
@@ -43,7 +48,7 @@ void AAuraPlayerController::ShowDamageNumber_Implementation(float DamageAmount, 
 		DamageText->RegisterComponent(); // Must manually register since we're not using TSubclassOf
 		DamageText->AttachToComponent(TargetCharacter->GetRootComponent(), FAttachmentTransformRules::KeepRelativeTransform);
 		DamageText->DetachFromComponent(FDetachmentTransformRules::KeepWorldTransform);
-		DamageText->SetDamageText(DamageAmount);
+		DamageText->SetDamageText(DamageAmount, bBlockedHit, bCriticalHit);
 	}
 }
 
