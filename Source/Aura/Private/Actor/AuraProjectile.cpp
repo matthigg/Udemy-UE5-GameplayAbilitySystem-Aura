@@ -58,12 +58,13 @@ void AAuraProjectile::Destroyed()
 			ImpactEffect,
 			GetActorLocation()
 		);
-	}
 	
-	if (LoopingSoundComponent && !LoopingSoundComponent->IsBeingDestroyed() && LoopingSoundComponent->IsActive())
-	{
-		LoopingSoundComponent->FadeOut(0.1f, 0.0f); 
+		if (LoopingSoundComponent && !LoopingSoundComponent->IsBeingDestroyed() && LoopingSoundComponent->IsActive())
+		{
+			LoopingSoundComponent->FadeOut(0.1f, 0.0f); 
+		}
 	}
+		
 	
 	Super::Destroyed();
 }
@@ -77,23 +78,33 @@ void AAuraProjectile::OnSphereOverlap(
 	const FHitResult& SweepResult
 )
 {
-	UGameplayStatics::PlaySoundAtLocation(
-		this,
-		ImpactSound,
-		GetActorLocation(),
-		FRotator::ZeroRotator
-	);
-	
-	UNiagaraFunctionLibrary::SpawnSystemAtLocation(
-		this,
-		ImpactEffect,
-		GetActorLocation()
-	);
-	
-	if (LoopingSoundComponent && !LoopingSoundComponent->IsBeingDestroyed() && LoopingSoundComponent->IsActive())
+	if (DamageEffectSpecHandle.Data.IsValid() && DamageEffectSpecHandle.Data.Get()->GetContext().GetEffectCauser() == OtherActor)
 	{
-		LoopingSoundComponent->FadeOut(0.1f, 0.0f); 
+		return;
 	}
+	
+	if (!bHit)
+		{
+			
+		UGameplayStatics::PlaySoundAtLocation(
+			this,
+			ImpactSound,
+			GetActorLocation(),
+			FRotator::ZeroRotator
+		);
+		
+		UNiagaraFunctionLibrary::SpawnSystemAtLocation(
+			this,
+			ImpactEffect,
+			GetActorLocation()
+		);
+		
+		if (LoopingSoundComponent && !LoopingSoundComponent->IsBeingDestroyed() && LoopingSoundComponent->IsActive())
+		{
+			LoopingSoundComponent->FadeOut(0.1f, 0.0f); 
+		}
+	}
+		
 	
 	// It's possible that the effect is destroyed before the sound is played & the effect is spawned on the client side
 	if (HasAuthority())

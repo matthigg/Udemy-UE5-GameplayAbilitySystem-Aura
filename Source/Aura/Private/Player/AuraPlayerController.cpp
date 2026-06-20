@@ -42,7 +42,7 @@ void AAuraPlayerController::ShowDamageNumber_Implementation(
 )
 {
 	// This executes on the server, but both a server-controlled and client-controlled character can see it
-	if (IsValid(TargetCharacter) && DamageTextComponentClass)
+	if (IsValid(TargetCharacter) && DamageTextComponentClass && IsLocalController())
 	{
 		UDamageTextComponent* DamageText = NewObject<UDamageTextComponent>(TargetCharacter, DamageTextComponentClass);
 		DamageText->RegisterComponent(); // Must manually register since we're not using TSubclassOf

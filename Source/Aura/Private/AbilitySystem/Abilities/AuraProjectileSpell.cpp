@@ -33,7 +33,7 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 		FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
 		
 		// This zeroes out the z-vector, meaning projectiles fly parallel to the x & y axes
-		Rotation.Pitch = 0.f;
+		// Rotation.Pitch = 0.f;
 		
 		FTransform SpawnTransform;
 		SpawnTransform.SetLocation(SocketLocation);
