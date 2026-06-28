@@ -211,8 +211,11 @@ void AAuraPlayerController::AbilityInputTagReleased(FGameplayTag InputTag)
 				}
 				
 				// TODO - crashed when enemies were following through pickups (health potions)
-				CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
-				bAutoRunning = true;
+				if (NavPath->PathPoints.Num() > 0)
+				{
+					CachedDestination = NavPath->PathPoints[NavPath->PathPoints.Num() - 1];
+					bAutoRunning = true;
+				}
 			}
 		}
 		FollowTime = 0.f;

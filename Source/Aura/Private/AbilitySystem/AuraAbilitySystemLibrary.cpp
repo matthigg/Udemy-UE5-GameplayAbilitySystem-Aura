@@ -2,9 +2,9 @@
 
 
 #include "AbilitySystem/AuraAbilitySystemLibrary.h"
-
 #include "AuraAbilityTypes.h"
 #include "GameMode/AuraGameModeBase.h"
+#include "Interaction/CombatInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "UI/WidgetController/AuraWidgetController.h"
 #include "Player/AuraPlayerState.h"
@@ -54,12 +54,6 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(
 )
 {
 	AActor* AvatarActor = ASC->GetAvatarActor();
-	
-	// Note: Enable this vs using GetCharacterClassInfo to fix multiplayer bug b/c it returns early
-	// const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
-	// if (AuraGameMode == nullptr) return;
-	// UCharacterClassInfo* CharacterClassInfo = AuraGameMode->CharacterClassInfo;
-	
 	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
 	FCharacterClassDefaultInfo ClassDefaultInfo = CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
 
@@ -91,18 +85,27 @@ void UAuraAbilitySystemLibrary::InitializeDefaultAttributes(
 	ASC->ApplyGameplayEffectSpecToSelf(*VitalAttributesSpecHandle.Data.Get());
 }
 
-void UAuraAbilitySystemLibrary::GiveStartupAbilities(const UObject* WorldContextObject, UAbilitySystemComponent* ASC)
+void UAuraAbilitySystemLibrary::GiveStartupAbilities(
+	const UObject* WorldContextObject, 
+	UAbilitySystemComponent* ASC, 
+	ECharacterClass CharacterClass
+)
 {
-	// Note: Enable this vs using GetCharacterClassInfo to fix multiplayer bug b/c it returns early
-	// const AAuraGameModeBase* AuraGameMode = Cast<AAuraGameModeBase>(UGameplayStatics::GetGameMode(WorldContextObject));
-	// if (AuraGameMode == nullptr) return;
-	// UCharacterClassInfo* CharacterClassInfo = AuraGameMode->CharacterClassInfo;
-	
 	UCharacterClassInfo* CharacterClassInfo = GetCharacterClassInfo(WorldContextObject);
+	if (CharacterClassInfo == nullptr) return;
 	for (TSubclassOf<UGameplayAbility> AbilityClass : CharacterClassInfo->CommonAbilities)
 	{
 		FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, 1);
 		ASC->GiveAbility(AbilitySpec);
+	}
+	const FCharacterClassDefaultInfo& DefaultInfo = CharacterClassInfo->GetClassDefaultInfo(CharacterClass);
+	for (TSubclassOf<UGameplayAbility> AbilityClass: DefaultInfo.StartupAbilities)
+	{
+		if (ICombatInterface* CombatInterface = Cast<ICombatInterface>(ASC->GetAvatarActor()))
+		{
+			FGameplayAbilitySpec AbilitySpec = FGameplayAbilitySpec(AbilityClass, CombatInterface->GetPlayerLevel());
+			ASC->GiveAbility(AbilitySpec);
+		}
 	}
 }
 
