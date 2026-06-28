@@ -155,3 +155,39 @@ void UAuraAbilitySystemLibrary::SetIsCriticalHit(
 		AuraEffectContext->SetIsCriticalHit(bInIsCriticalHit);
 	}
 }
+
+void UAuraAbilitySystemLibrary::GetLivePlayersWithinRadius(
+	const UObject* WorldContextObject,
+	TArray<AActor*>& OutOverlappingActors, 
+	const TArray<AActor*>& ActorsToIgnore, 
+	float Radius,
+	const FVector& SphereOrigin
+)
+{
+	
+	FCollisionQueryParams SphereParams;
+	SphereParams.AddIgnoredActors(ActorsToIgnore);
+	
+	// query scene to see what we hit
+	TArray<FOverlapResult> Overlaps;
+	if (const UWorld* World = GEngine->GetWorldFromContextObject(WorldContextObject, EGetWorldErrorMode::LogAndReturnNull))
+	{
+		World->OverlapMultiByObjectType(
+			Overlaps, 
+			SphereOrigin, 
+			FQuat::Identity, 
+			FCollisionObjectQueryParams(FCollisionObjectQueryParams::InitType::AllDynamicObjects), 
+			FCollisionShape::MakeSphere(Radius), 
+			SphereParams
+		);
+		for (FOverlapResult& Overlap : Overlaps)
+		{
+			const bool bImplementsCombatInterface = Overlap.GetActor()->Implements<UCombatInterface>();
+			if (bImplementsCombatInterface && !ICombatInterface::Execute_IsDead(Overlap.GetActor()))
+			{
+				// You could also add the actor to the OutOverlappingActors array via OutOverlappingActors.AddUnique(Overlap.GetActor())
+				OutOverlappingActors.AddUnique(ICombatInterface::Execute_GetAvatar(Overlap.GetActor()));
+			}
+		}
+	}
+}

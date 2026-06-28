@@ -26,54 +26,50 @@ void UAuraProjectileSpell::SpawnProjectile(const FVector& ProjectileTargetLocati
 	const bool bIsServer = GetAvatarActorFromActorInfo()->HasAuthority();
 	if (!bIsServer) return;
 	
-	ICombatInterface* CombatInterface = Cast<ICombatInterface>(GetAvatarActorFromActorInfo());
-	if (CombatInterface)
+	const FVector SocketLocation = ICombatInterface::Execute_GetCombatSocketLocation(GetAvatarActorFromActorInfo());
+	const FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
+	
+	// This zeroes out the z-vector, meaning projectiles fly parallel to the x & y axes
+	// Rotation.Pitch = 0.f;
+	
+	FTransform SpawnTransform;
+	SpawnTransform.SetLocation(SocketLocation);
+	SpawnTransform.SetRotation(Rotation.Quaternion());
+	
+	AAuraProjectile* Projectile = GetWorld()->SpawnActorDeferred<AAuraProjectile>(
+		ProjectileClass, 
+		SpawnTransform, 
+		GetOwningActorFromActorInfo(), 
+		Cast<APawn>(GetOwningActorFromActorInfo()),
+		ESpawnActorCollisionHandlingMethod::AlwaysSpawn
+	);
+	
+	// Give the Projectile a Gameplay Effect Spec for causing damage
+	const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
+	
+	FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
+	
+	// These are just examples of things you can add to a GameplayEffectContextHandle
+	// EffectContextHandle.SetAbility(this);
+	// EffectContextHandle.AddSourceObject(Projectile);
+	// TArray<TWeakObjectPtr<AActor>> Actors;
+	// Actors.Add(Projectile);
+	// EffectContextHandle.AddActors(Actors);
+	// FHitResult HitResult;
+	// EffectContextHandle.AddHitResult(HitResult);
+	
+	const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
+	
+	const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
+	
+	for (auto& Pair : DamageTypesMap)
 	{
-		const FVector SocketLocation = CombatInterface->GetCombatSocketLocation();
-		FRotator Rotation = (ProjectileTargetLocation - SocketLocation).Rotation();
+		const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
 		
-		// This zeroes out the z-vector, meaning projectiles fly parallel to the x & y axes
-		// Rotation.Pitch = 0.f;
-		
-		FTransform SpawnTransform;
-		SpawnTransform.SetLocation(SocketLocation);
-		SpawnTransform.SetRotation(Rotation.Quaternion());
-		
-		AAuraProjectile* Projectile = GetWorld()->SpawnActorDeferred<AAuraProjectile>(
-			ProjectileClass, 
-			SpawnTransform, 
-			GetOwningActorFromActorInfo(), 
-			Cast<APawn>(GetOwningActorFromActorInfo()),
-			ESpawnActorCollisionHandlingMethod::AlwaysSpawn
-		);
-		
-		// Give the Projectile a Gameplay Effect Spec for causing damage
-		const UAbilitySystemComponent* SourceASC = UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetAvatarActorFromActorInfo());
-		
-		FGameplayEffectContextHandle EffectContextHandle = SourceASC->MakeEffectContext();
-		
-		// These are just examples of things you can add to a GameplayEffectContextHandle
-		// EffectContextHandle.SetAbility(this);
-		// EffectContextHandle.AddSourceObject(Projectile);
-		// TArray<TWeakObjectPtr<AActor>> Actors;
-		// Actors.Add(Projectile);
-		// EffectContextHandle.AddActors(Actors);
-		// FHitResult HitResult;
-		// EffectContextHandle.AddHitResult(HitResult);
-		
-		const FGameplayEffectSpecHandle SpecHandle = SourceASC->MakeOutgoingSpec(DamageEffectClass, GetAbilityLevel(), EffectContextHandle);
-		
-		const FAuraGameplayTags GameplayTags = FAuraGameplayTags::Get();
-		
-		for (auto& Pair : DamageTypesMap)
-		{
-			const float ScaledDamage = Pair.Value.GetValueAtLevel(GetAbilityLevel());
-			
-			// AssignTagSetByCallerMagnitude creates a key:value pair, where GameplayTags.Damage is the key and ScaledDamage is the value
-			UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Pair.Key, ScaledDamage);
-		}
-		
-		Projectile->DamageEffectSpecHandle = SpecHandle;
-		Projectile->FinishSpawning(SpawnTransform);
+		// AssignTagSetByCallerMagnitude creates a key:value pair, where GameplayTags.Damage is the key and ScaledDamage is the value
+		UAbilitySystemBlueprintLibrary::AssignTagSetByCallerMagnitude(SpecHandle, Pair.Key, ScaledDamage);
 	}
+	
+	Projectile->DamageEffectSpecHandle = SpecHandle;
+	Projectile->FinishSpawning(SpawnTransform);
 }
